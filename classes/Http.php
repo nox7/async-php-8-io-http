@@ -159,7 +159,7 @@
 					}
 
 					if (!$streamEnded){
-						//print("Connection timed out");
+						throw new Exception("Connection timed out.");
 					}else{
 						// Finished normally
 						return $buffer;
