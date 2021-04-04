@@ -5,6 +5,8 @@
 	class Http{
 
 		public static array $hostnameCache = [];
+		public static int $connectionTimeout = 2;
+		public static int $waitingForDataTimeout = 2;
 
 		public $socket;
 		public bool $connected;
@@ -74,11 +76,11 @@
 				$read = [];
 				$write = [$socket];
 				$excepts = [];
-				$socketsAvailable = stream_select($read, $write, $excepts, 5);
+				$socketsAvailable = stream_select($read, $write, $excepts, self::$connectionTimeout);
 
 				// Wait for a connection
 				while ($socketsAvailable === 0){
-					$socketsAvailable = stream_select($read, $write, $excepts, 5);
+					$socketsAvailable = stream_select($read, $write, $excepts, self::$connectionTimeout);
 					Fiber::suspend();
 				}
 
@@ -87,13 +89,13 @@
 				// SSL port is generally 443, but not all the time is this required
 				if ($scheme === "https"){
 					while (true){
-						$socketsAvailable = stream_select($read, $write, $excepts, 5);
+						$socketsAvailable = stream_select($read, $write, $excepts, self::$connectionTimeout);
 						if ($socketsAvailable > 0){
 							$result = stream_socket_enable_crypto($socket, $enabled = true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 							if ($result === true){
 								break;
 							}elseif ($result === false){
-								throw new Exception("SSL failed");
+								throw new Exception("SSL connection failed or timed out.");
 							}else{
 								// Wait, it's still working...
 								Fiber::suspend();
@@ -126,12 +128,12 @@
 					$reads = [];
 					$writes = [$socket];
 					$excepts = [];
-					$socketsAvailable = stream_select($reads, $writes, $excepts, 5);
+					$socketsAvailable = stream_select($reads, $writes, $excepts, self::$waitingForDataTimeout);
 
 					// Wait for the stream to be writable
 					while ($socketsAvailable === 0){
 						Fiber::suspend();
-						$socketsAvailable = stream_select($reads, $writes, $excepts, 5);
+						$socketsAvailable = stream_select($reads, $writes, $excepts, self::$waitingForDataTimeout);
 					}
 					$bytes = fwrite($socket, $getBody);
 
@@ -140,7 +142,7 @@
 						$reads = [$socket];
 						$writes = [];
 						$excepts = [];
-						$socketsAvailable = stream_select($reads, $writes, $excepts, 5);
+						$socketsAvailable = stream_select($reads, $writes, $excepts, self::$waitingForDataTimeout);
 						$data = fread($socket, 1024);
 						if ($data !== false){
 							// fread will be blank upon initial connecting/decrypting
@@ -159,7 +161,7 @@
 					}
 
 					if (!$streamEnded){
-						//print("Connection timed out");
+						throw new Exception("Connection timed out.");
 					}else{
 						// Finished normally
 						return $buffer;

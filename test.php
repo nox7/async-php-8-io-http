@@ -4,33 +4,34 @@
 
 	header("content-type: text/plain");
 
+	// Top-level Fiber (equivalent to top-level async/await in JavaScript)
 	$main = new Fiber(function(){
 
 		$requests = [
 			new Http("get", "https://animetavern.com"),
-			new Http("get", "https://animetavern.com"),
-			new Http("get", "https://animetavern.com"),
 			new Http("get", "https://footbridgemedia.com"),
 			new Http("get", "https://www.mcmahonplumbing.com/"),
 			new Http("get", "https://www.prowaterheatersnj.com/"),
+			new Http("get", "https://codeburst.io/top-10-discord-servers-for-developers-86570fcdbff3"),
+			new Http("get", "https://www.php.net/manual/en/stream.errors.php"),
+			new Http("get", "https://discord.me/devcord"),
 		];
 
+		// Loop over the HTTP requests
 		foreach($requests as $request){
-			$childFiber = new Fiber(function() use ($request){
-
-				print(sprintf("Connecting to %s at %s\n", $request->url, microtime(true)));
-				Async::await($request->connect(), $request->host, 1);
-
-				print(sprintf("Connected to %s\n", $request->url));
-				$data = Async::await($request->fetch(), $request->host, 2);
-
-				print(sprintf("Data fetched from %s. %d bytes\n", $request->url, strlen($data)));
+			// Async function
+			$childFiber = new Fiber(function() use ($request, &$finishedLoops){
+				// Async connect
+				Async::await($request->connect());
+				// Async fetch
+				$response = Async::await($request->fetch());
 			});
-			Async::load($childFiber);
+			$childFiber->start();
 		}
 
+		// Start the event loop of all available fibers
 		Async::run();
-
 	});
 
+	// Start the top-level Fiber
 	$main->start();
