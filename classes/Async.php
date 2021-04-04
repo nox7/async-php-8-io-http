@@ -40,10 +40,12 @@
 					}
 				}
 
-				foreach($toRemove as $index){
-					unset(self::$activeAwaits[$index]);
-					self::$activeAwaits = array_values(self::$activeAwaits);
+				foreach($toRemove as $indexToRemove){
+					unset(self::$activeAwaits[$indexToRemove]);
 				}
+
+				// Re-index the array
+				self::$activeAwaits = array_values(self::$activeAwaits);
 			}
 
 		}
