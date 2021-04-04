@@ -1,10 +1,9 @@
 <?php
 	class Async{
 
-		public static array $loadedFibers = [];
 		public static array $activeAwaits = [];
 
-		public static function await(Fiber $childFiber, string $host, int $stage){
+		public static function await(Fiber $childFiber){
 			self::$activeAwaits[] = [Fiber::this(), $childFiber];
 			$childFiber->start();
 			while ($childFiber->isTerminated() === false){
@@ -24,7 +23,6 @@
 
 		public static function load(Fiber $fiberToStart){
 			$fiberToStart->start();
-			self::$loadedFibers[] = $fiberToStart;
 		}
 
 		public static function run(){

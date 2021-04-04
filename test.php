@@ -19,10 +19,10 @@
 			$childFiber = new Fiber(function() use ($request){
 
 				print(sprintf("Connecting to %s at %s\n", $request->url, microtime(true)));
-				Async::await($request->connect(), $request->host, 1);
+				Async::await($request->connect());
 
 				print(sprintf("Connected to %s\n", $request->url));
-				$data = Async::await($request->fetch(), $request->host, 2);
+				$data = Async::await($request->fetch());
 
 				print(sprintf("Data fetched from %s. %d bytes\n", $request->url, strlen($data)));
 			});
