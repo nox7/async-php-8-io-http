@@ -1,4 +1,4 @@
-# PHP Fibers - Async Examples
+# PHP Fibers - Async Examples Without External Dependencies
 True asynchronous PHP I/O and HTTP without frameworks, extensions, or annoying code behemoths of libraries to install.
 
 More examples to come - currently only HTTP GET is displayed.
@@ -10,6 +10,8 @@ Until PHP 8.1 is out, you must have the Fiber extension in your PHP version. I c
 ## Brief Example
 
 For the full example, checkout the example.php file. A small snippet is shown below.
+
+The classes `Async` and `Http` are provided in the `classes` folder of this repository.
 
 ```php
 // Top-level fiber (same as top-level async/await in JavaScript)
