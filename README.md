@@ -14,27 +14,23 @@ For the full example, checkout the example.php file. A small snippet is shown be
 The classes `Async` and `Http` are provided in the `classes` folder of this repository.
 
 ```php
-// Top-level fiber (same as top-level async/await in JavaScript)
-$main = new Fiber(function(){
-	$request1 = new Http("get", "http://example.com");
-	$request2 = new Http("get", "http://example.com");
+$request1 = new Http("get", "http://example.com");
+$request2 = new Http("get", "http://example.com");
 
-	foreach ([$request1, $request2] as $request){
-		$child = new Fiber(function() use ($request){
-			// ::await only blocks the _current_ thread. All other Fibers can still run
-			Async::await($request->connect());
-			Async::await($request->fetch());
-			
-			// Code here runs as soon as this URL is done fetching
-			// and doesn't wait for others to finish :)
-		});
-		$child->start();
-	}
+foreach ([$request1, $request2] as $request){
+	$child = new Fiber(function() use ($request){
+		// ::await only blocks the _current_ thread. All other Fibers can still run
+		Async::await($request->connect());
+		Async::await($request->fetch());
 
-	// Currently, ::run() blocks the top-level fiber and will await all the child fibers above.
-	// This will be changed to allow ::awaitAll() or simply ignoring it entirely for full asynchronous
-	// processes.
-	Async::run();
-});
-$main->start();
+		// Code here runs as soon as this URL is done fetching
+		// and doesn't wait for others to finish :)
+	});
+	$child->start();
+}
+
+// Currently, ::run() blocks the top-level fiber and will await all the child fibers above.
+// This will be changed to allow ::awaitAll() or simply ignoring it entirely for full asynchronous
+// processes.
+Async::run();
 ```
