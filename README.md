@@ -25,6 +25,9 @@ $main = new Fiber(function(){
 		$child->start();
 	}
 
+	// Currently, ::run() blocks the top-level fiber and will await all the child fibers above.
+	// This will be changed to allow ::awaitAll() or simply ignoring it entirely for full asynchronous
+	// processes.
 	Async::run();
 });
 $main->start();
