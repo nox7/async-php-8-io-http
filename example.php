@@ -17,20 +17,20 @@
 			new Http("get", "https://discord.me/devcord"),
 		];
 
-		// Loop over the HTTP requests
 		foreach($requests as $request){
-			// Async function
+			// Async function. All awaits are non-blocking
 			$childFiber = new Fiber(function() use ($request, &$finishedLoops){
-				// Async connect
 				Async::await($request->connect());
-				// Async fetch
 				$response = Async::await($request->fetch());
 			});
 			$childFiber->start();
 		}
 
-		// Start the event loop of all available fibers
+		// Start the event loop of all available fibers. This is blocking
+		// TODO Make this yield as well!
 		Async::run();
+
+		print("All requests finished asynchronously!\n");
 	});
 
 	// Start the top-level Fiber
