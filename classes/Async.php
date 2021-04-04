@@ -21,11 +21,6 @@
 			return $childFiber->getReturn();
 		}
 
-		public static function load(Fiber $fiberToStart){
-			$fiberToStart->start();
-		}
-
-		public static function run(){
 
 			while (count(self::$activeAwaits) > 0){
 				$toRemove = [];
