@@ -100,6 +100,9 @@
 								// Wait, it's still working...
 								Fiber::suspend();
 							}
+						}else{
+							// Come back later
+							Fiber::suspend();
 						}
 					}
 				}
