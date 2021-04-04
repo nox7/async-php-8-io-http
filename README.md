@@ -23,6 +23,9 @@ $main = new Fiber(function(){
 		$child = new Fiber(function() use ($request){
 			Async::await($request->connect());
 			Async::await($request->fetch());
+			
+			// Code here runs as soon as this URL is done fetching
+			// and doesn't wait for others to finish :)
 		});
 		$child->start();
 	}
