@@ -21,6 +21,7 @@ $main = new Fiber(function(){
 
 	foreach ([$request1, $request2] as $request){
 		$child = new Fiber(function() use ($request){
+			// ::await only blocks the _current_ thread. All other Fibers can still run
 			Async::await($request->connect());
 			Async::await($request->fetch());
 			
