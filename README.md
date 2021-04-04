@@ -29,8 +29,9 @@ foreach ([$request1, $request2] as $request){
 	$child->start();
 }
 
-// Currently, ::run() blocks the top-level fiber and will await all the child fibers above.
-// This will be changed to allow ::awaitAll() or simply ignoring it entirely for full asynchronous
-// processes.
+// Currently, ::run() is blocking the program and nothing below this
+// call will run until the fibers above are finished.
+// In the future, a top-level fiber can be introduced to make the entire
+// application fully asynchronous. One is used in the example.php file
 Async::run();
 ```
