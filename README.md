@@ -1,8 +1,7 @@
 # PHP Fibers - Async Examples Without External Dependencies
 True asynchronous PHP I/O and HTTP without frameworks, extensions, or annoying code behemoths of libraries to install.
 
-More examples to come - currently only HTTP GET is displayed.
-
+More examples to come - currently only HTTP GET and asynchronous MySQLi queries are shown.
 ## Requirement
 
 Until PHP 8.1 is out, you must have the Fiber extension in your PHP version. I compiled the php_fiber.dll myself on Windows 10 for PHP 8.0.3 for this example and ran it from XAMPP.
