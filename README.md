@@ -36,6 +36,12 @@ foreach ([$request1, $request2] as $request){
 Async::run();
 ```
 
+## Result of the example.php run
+
+Shown below from a run of example.php within an Apache server request, URLs connected and fetched as soon as they were ready, and not in linear order - but asynchronously.
+
+![Asynchronous PHP Requests](https://user-images.githubusercontent.com/17110935/113648260-f01ecd80-9651-11eb-9532-73c9f606d318.png)
+
 ## The Future of This Repository
 I will continue to implement standalone asynchronous methods for common waitable tasks. Currently HTTP is implemented with basic fetching of content from a URL. Moving forward, I will support different HTTP requests and abstractions, asynchronous MySQLi queries, and asynchronous local file I/O.
 
