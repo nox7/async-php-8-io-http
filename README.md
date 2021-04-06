@@ -35,3 +35,10 @@ foreach ([$request1, $request2] as $request){
 // application fully asynchronous. One is used in the example.php file
 Async::run();
 ```
+
+## The Future of This Repository
+I will continue to implement standalone asynchronous methods for common waitable tasks. Currently HTTP is implemented with basic fetching of content from a URL. Moving forward, I will support different HTTP requests and abstractions, asynchronous MySQLi queries, and asynchronous local file I/O.
+
+The **goal** is to have a location where you can get the smallest amount of open source code to perform asynchronous tasks in PHP. A framework like AmpPHP will always be superior if you would like to center your codebase around it, but my goal is to give you the option to leave a smaller footprint or simply made an addition to your existing codebase.
+
+Want to spin up a quick Apache or nginx server on your Linux machine or via XAMPP for windows and grab a couple files for asynchronous MySQLi? That's what I want to give you the choice to do.
