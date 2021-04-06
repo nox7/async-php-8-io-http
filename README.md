@@ -7,9 +7,9 @@ More examples to come - currently only HTTP GET is displayed.
 
 Until PHP 8.1 is out, you must have the Fiber extension in your PHP version. I compiled the php_fiber.dll myself on Windows 10 for PHP 8.0.3 for this example and ran it from XAMPP.
 
-## Brief Example
+## Async HTTP GET Example
 
-For the full example, checkout the example.php file. A small snippet is shown below.
+For the full example, checkout the http-example.php file. A small snippet is shown below.
 
 The classes `Async` and `Http` are provided in the `classes` folder of this repository.
 
@@ -36,9 +36,32 @@ foreach ([$request1, $request2] as $request){
 Async::run();
 ```
 
-## Result of the example.php run
+## Async MySQL Query Example
 
-Shown below from a run of example.php within an Apache server request, URLs connected and fetched as soon as they were ready, and not in linear order - but asynchronously.
+For the full example, checkout the mysql-example.php file. A small snippet is shown below.
+
+The classes `Async` and `Http` are provided in the `classes` folder of this repository.
+
+```php
+
+// Initial connections are blocking. All queries are asynchronous.
+// Spawn 10 connections in the pool.
+$connectionsPool = new MySQLPool(10, "localhost", "root", "", "test");
+$queryFiber = new Fiber(function() use ($connectionsPool){
+	// ::await only blocks the _current_ thread. All other Fibers can still run
+	$result = Async::await($connectionsPool->execute(
+		"SELECT * FROM `test_table` WHERE `name` = :name",
+		[':name'=>"nox7"],
+	));
+	print_r($result->fetch_assoc());
+});
+$child->start();
+Async::run();
+```
+
+## Result of the http-example.php run
+
+Shown below from a run of http-example.php within an Apache server request, URLs connected and fetched as soon as they were ready, and not in linear order - but asynchronously.
 
 ![Asynchronous PHP Requests](https://user-images.githubusercontent.com/17110935/113648260-f01ecd80-9651-11eb-9532-73c9f606d318.png)
 
