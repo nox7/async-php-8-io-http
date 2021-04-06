@@ -1,6 +1,6 @@
 <?php
 	require_once __DIR__ . "/Async.php";
-	require_once __DIR__ . "/AsyncSocket.php";
+	require_once __DIR__ . "/AsyncSocket/AsyncSocket.php";
 
 	/**
 	* Asynchronous Http class for async GET and POST requests
