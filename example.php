@@ -17,11 +17,14 @@
 			new Http("get", "https://discord.me/devcord"),
 		];
 
+		$startTime = microtime(true);
 		foreach($requests as $request){
 			// Async function. All awaits are non-blocking
 			$childFiber = new Fiber(function() use ($request, &$finishedLoops){
 				Async::await($request->connect());
+				print(sprintf("Connected %s\n", $request->host));
 				$response = Async::await($request->fetch());
+				print(sprintf("Finished %s\n", $request->host));
 			});
 			$childFiber->start();
 		}
@@ -30,7 +33,8 @@
 		// TODO Make this yield as well!
 		Async::run();
 
-		print("All requests finished asynchronously!\n");
+		// Microtime is seconds on Windows as a float
+		printf("All requests finished asynchronously in %fs\n", microtime(true) - $startTime);
 	});
 
 	// Start the top-level Fiber
