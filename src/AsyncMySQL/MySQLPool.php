@@ -1,4 +1,6 @@
 <?php
+	namespace AsyncMySQL;
+
 	require_once __DIR__ . "/AsyncMySQL.php";
 
 	class MySQLPool{
@@ -22,10 +24,10 @@
 		* Runs an asynchronous ::execute() on an available AsyncMySQL object.
 		* If none are available, will wait until one is.
 		*/
-		public function execute(string $query, array $namedArgs = []): Fiber{
+		public function execute(string $query, array $namedArgs = []): \Fiber{
 			$asyncMySQL = null;
 
-			return new Fiber(function() use ($query, $namedArgs){
+			return new \Fiber(function() use ($query, $namedArgs){
 				do{
 					foreach ($this->asyncMySQLs as $obj){
 						if ($obj->isAvailable){
@@ -35,11 +37,11 @@
 					}
 
 					if ($asyncMySQL === null){
-						Fiber::suspend();
+						\Fiber::suspend();
 					}
 				} while ($asyncMySQL === null);
 
-				return Async::await($asyncMySQL->execute($query, $namedArgs));
+				return \Async::await($asyncMySQL->execute($query, $namedArgs));
 			});
 
 		}

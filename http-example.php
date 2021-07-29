@@ -1,6 +1,8 @@
 <?php
-	require_once __DIR__ . "/classes/Async.php";
-	require_once __DIR__ . "/classes/Http.php";
+	require_once __DIR__ . "/src/Async.php";
+	require_once __DIR__ . "/src/Http/Http.php";
+
+	use Http\Http;
 
 	header("content-type: text/plain");
 

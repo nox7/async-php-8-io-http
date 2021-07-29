@@ -1,8 +1,11 @@
 <?php
+	namespace AsyncSocket;
+
 	require_once __DIR__ . "/exceptions/SocketConnectionTimedOut.php";
 	require_once __DIR__ . "/exceptions/SocketEnableCryptoTimeout.php";
 	require_once __DIR__ . "/exceptions/SocketEnableCryptoFailed.php";
 	require_once __DIR__ . "/exceptions/SocketNotConnected.php";
+	require_once __DIR__ . "/exceptions/OpenSSLNotLoaded.php";
 
 	/**
 	* General asynchronous socket implementation
@@ -30,7 +33,7 @@
 		/**
 		* Makes an asynchronous connection to the socket
 		*/
-		public function connect(): Fiber{
+		public function connect(): \Fiber{
 
 			$this->socket = stream_socket_client(
 				sprintf("%s://%s:%s", "tcp", $this->host, $this->port),
@@ -45,7 +48,7 @@
 				])
 			);
 
-			return new Fiber(function(){
+			return new \Fiber(function(){
 				// Turn blocking of the socket off
 				stream_set_blocking($this->socket, false);
 
@@ -61,7 +64,7 @@
 						$this->connected = true;
 						return;
 					}else{
-						Fiber::suspend();
+						\Fiber::suspend();
 					}
 				} while (time() - $beginTime <= self::$defaultConnectionTimeoutSeconds);
 
@@ -71,26 +74,36 @@
 		}
 
 		/**
-		* Asynchronously enable crypto mode/SSL/TLS on the socket
-		*/
-		public function enableCrypto(): Fiber{
-			return new Fiber(function(){
+		 * Asynchronously enable crypto mode/SSL/TLS on the socket
+		 * @throws OpenSSLNotLoaded
+		 */
+		public function enableCrypto(): \Fiber{
+			if (!extension_loaded('openssl')) {
+				throw new OpenSSLNotLoaded("Missing OpenSSL support in your PHP installation.");
+			}
+
+			return new \Fiber(function(){
 				$beginTime = time();
-				$result;
+				/** @var ?int|?bool $result */
+				$result = null;
 				do{
-					$result = stream_socket_enable_crypto($this->socket, $enabled = true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+					$result = stream_socket_enable_crypto(
+						$this->socket,
+						true,
+						STREAM_CRYPTO_METHOD_TLS_CLIENT
+					);
 					if ($result === true){
 						break;
 					}elseif ($result === false){
 						break;
 					}else{
 						// Wait, it's still working...
-						Fiber::suspend();
+						\Fiber::suspend();
 					}
 				}while ($result !== true && (time() - $beginTime <= self::$defaultSSLNegotiationsTimeoutSeconds));
 
 				if ($result === 0){
-					throw new SocketEnableCryptoTimeout;
+					throw new SocketEnableCryptoTimeout();
 				}elseif ($result === false){
 					throw new SocketEnableCryptoFailed(sprintf("SSL failed for host %s", $this->host));
 				}
@@ -102,12 +115,12 @@
 		/**
 		* Asynchronous socket write
 		*/
-		public function write(string $data): Fiber{
+		public function write(string $data): \Fiber{
 			if (!$this->connected){
 				throw new SocketNotConnected("Cannot write to a socket that is not connected.");
 			}
 
-			return new Fiber(function() use ($data){
+			return new \Fiber(function() use ($data){
 				$bytesWritten = 0;
 				$reads = [];
 				$writes = [$this->socket];
@@ -126,7 +139,7 @@
 					}
 
 					// Always suspend
-					Fiber::suspend();
+					\Fiber::suspend();
 				} while ($data !== "" && (time() - $beginTime) <= self::$defaultWriteTimeoutSeconds);
 			});
 		}
@@ -134,12 +147,12 @@
 		/**
 		* Asynchronous socket full-read until no more data is being sent to the socket
 		*/
-		public function readAllData(): Fiber{
+		public function readAllData(): \Fiber{
 			if (!$this->connected){
 				throw new SocketNotConnected("Cannot read from a socket that is not connected.");
 			}
 
-			return new Fiber(function(){
+			return new \Fiber(function(){
 				$buffer = "";
 				$reads = [$this->socket];
 				$writes = [];
@@ -168,7 +181,7 @@
 						}
 					}
 					// Always suspend
-					Fiber::suspend();
+					\Fiber::suspend();
 				} while (time() - $beginTime <= self::$defaultReadTimeoutSeconds);
 
 				// TODO Should an exception be thrown if data WAS read

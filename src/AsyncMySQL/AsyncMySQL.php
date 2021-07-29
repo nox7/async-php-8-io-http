@@ -1,5 +1,13 @@
 <?php
+	namespace AsyncMySQL;
+
+	use const MYSQLI_ASYNC;
+	use const MYSQLI_REPORT_ERROR;
+	use const MYSQLI_REPORT_STRICT;
+	use const MYSQLI_STORE_RESULT;
+
 	require_once __DIR__ . "/exceptions/OperationsOutOfSync.php";
+	require_once __DIR__ . "/exceptions/QueryTimedOut.php";
 
 	/**
 	* Wrapper for MySQLi to run asynchronous queries.
@@ -11,7 +19,7 @@
 		public static string $defaultCollation = "utf8mb4_unicode_ci";
 		public static int $defaultQueryTimeout = 5;
 
-		public mysqli $connection;
+		public \mysqli $connection;
 
 		/** Whether or not this class is available to perform another query. */
 		public bool $isAvailable = true;
@@ -23,9 +31,9 @@
 			public string $database,
 			public int $port = 3306
 		){
-			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+			\mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-			$connection = new mysqli($host, $user, $password, $database, $port);
+			$connection = new \mysqli($host, $user, $password, $database, $port);
 			$this->connection = $connection;
 
 			// Run this synchronously
@@ -33,10 +41,11 @@
 		}
 
 		/**
-		* Asynchronously executes a query with named arguments.
-		* Will return the result of the query.
-		*/
-		public function execute(string $query, array $namedArgs = []): Fiber{
+		 * Asynchronously executes a query with named arguments.
+		 * Will return the result of the query.
+		 * @throws OperationsOutOfSync
+		 */
+		public function execute(string $query, array $namedArgs = []): \Fiber{
 
 			if (!$this->isAvailable){
 				throw new OperationsOutOfSync("Cannot run execute on this AsyncMySQL object at this time. It is currently handling another query. Consider using the MySQLPool class.");
@@ -44,7 +53,7 @@
 
 			$this->isAvailable = false;
 
-			return new Fiber(function() use ($query, $namedArgs){
+			return new \Fiber(function() use ($query, $namedArgs){
 				if (count($namedArgs) > 0){
 					$query = $this->buildQueryFromNamedArgs($query, $namedArgs);
 				}
@@ -54,16 +63,16 @@
 				$errors = [];
 				$rejections = [];
 				$beginTime = time();
-				Fiber::suspend();
+				\Fiber::suspend();
 
 				$numReadyQueries;
 				do{
-					$numReadyQueries = (int) mysqli::poll($toPoll, $errors, $rejections, self::$defaultQueryTimeout);
+					$numReadyQueries = (int) \mysqli::poll($toPoll, $errors, $rejections, self::$defaultQueryTimeout);
 					if ($numReadyQueries > 0){
 						break;
 					}
 
-					Fiber::suspend();
+					\Fiber::suspend();
 				} while ((time() - $beginTime <= self::$defaultQueryTimeout));
 
 				$this->isAvailable = true;
@@ -77,7 +86,7 @@
 						return $result;
 					}
 				}else{
-					throw new QueryTimedOut;
+					throw new QueryTimedOut();
 				}
 			});
 		}

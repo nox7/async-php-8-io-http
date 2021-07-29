@@ -8,7 +8,7 @@
 		* parent fiber upon the child fiber suspending/yielding.
 		*/
 		public static function await(Fiber $childFiber): mixed{
-			self::$activeAwaits[] = [Fiber::this(), $childFiber];
+			self::$activeAwaits[] = [Fiber::getCurrent(), $childFiber];
 			$childFiber->start();
 			while ($childFiber->isTerminated() === false){
 				$childFiber->resume();
