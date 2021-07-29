@@ -1,6 +1,11 @@
 <?php
 	namespace AsyncMySQL;
 
+	use const MYSQLI_ASYNC;
+	use const MYSQLI_REPORT_ERROR;
+	use const MYSQLI_REPORT_STRICT;
+	use const MYSQLI_STORE_RESULT;
+
 	require_once __DIR__ . "/exceptions/OperationsOutOfSync.php";
 	require_once __DIR__ . "/exceptions/QueryTimedOut.php";
 
@@ -26,7 +31,7 @@
 			public string $database,
 			public int $port = 3306
 		){
-			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+			\mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 			$connection = new \mysqli($host, $user, $password, $database, $port);
 			$this->connection = $connection;
@@ -40,7 +45,7 @@
 		 * Will return the result of the query.
 		 * @throws OperationsOutOfSync
 		 */
-		public function execute(string $query, array $namedArgs = []): Fiber{
+		public function execute(string $query, array $namedArgs = []): \Fiber{
 
 			if (!$this->isAvailable){
 				throw new OperationsOutOfSync("Cannot run execute on this AsyncMySQL object at this time. It is currently handling another query. Consider using the MySQLPool class.");
@@ -48,7 +53,7 @@
 
 			$this->isAvailable = false;
 
-			return new Fiber(function() use ($query, $namedArgs){
+			return new \Fiber(function() use ($query, $namedArgs){
 				if (count($namedArgs) > 0){
 					$query = $this->buildQueryFromNamedArgs($query, $namedArgs);
 				}
@@ -58,7 +63,7 @@
 				$errors = [];
 				$rejections = [];
 				$beginTime = time();
-				Fiber::suspend();
+				\Fiber::suspend();
 
 				$numReadyQueries;
 				do{
@@ -67,7 +72,7 @@
 						break;
 					}
 
-					Fiber::suspend();
+					\Fiber::suspend();
 				} while ((time() - $beginTime <= self::$defaultQueryTimeout));
 
 				$this->isAvailable = true;

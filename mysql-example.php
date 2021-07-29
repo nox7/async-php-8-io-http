@@ -1,6 +1,9 @@
 <?php
-	require_once __DIR__ . "/classes/Async.php";
-	require_once __DIR__ . "/classes/AsyncMySQL/MySQLPool.php";
+
+	use AsyncMySQL\MySQLPool;
+
+	require_once __DIR__ . "/src/Async.php";
+	require_once __DIR__ . "/src/AsyncMySQL/MySQLPool.php";
 
 	header("content-type: text/plain");
 
