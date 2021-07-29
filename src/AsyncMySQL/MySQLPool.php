@@ -1,4 +1,6 @@
 <?php
+	namespace AsyncMySQL;
+
 	require_once __DIR__ . "/AsyncMySQL.php";
 
 	class MySQLPool{

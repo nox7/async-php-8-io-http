@@ -1,13 +1,17 @@
 <?php
-	require_once __DIR__ . "/Async.php";
-	require_once __DIR__ . "/AsyncSocket/AsyncSocket.php";
+	namespace Http;
+
+	require_once __DIR__ . "/../Async.php";
+	require_once __DIR__ . "/../AsyncSocket/AsyncSocket.php";
+
+	use AsyncSocket\AsyncSocket;
 
 	/**
 	* Asynchronous Http class for async GET and POST requests
 	*/
 	class Http{
 
-		public $socket;
+		public AsyncSocket $socket;
 		public string $method;
 		public string $url;
 		public string $host;
@@ -15,7 +19,6 @@
 		public int $port;
 		public string $path;
 		public string $query;
-		public string $fragment;
 
 		public function __construct(string $method, string $url){
 			$this->method = $method;
@@ -45,16 +48,16 @@
 		/**
 		* Makes an asynchronous connection to the socket
 		*/
-		public function connect(): Fiber{
+		public function connect(): \Fiber{
 			// Because TLS/SSL requires both parties to send
 			// and receive data upon connection, ssl:// cannot be used
 			// in the initial request. TCP must be used and then
 			// crypto must be enabled below
-			return new Fiber(function(){
-				Async::await($this->socket->connect());
+			return new \Fiber(function(){
+				\Async::await($this->socket->connect());
 
 				if ($this->scheme === "https"){
-					Async::await($this->socket->enableCrypto());
+					\Async::await($this->socket->enableCrypto());
 				}
 			});
 		}
@@ -62,8 +65,8 @@
 		/**
 		* Begins fetching of the data
 		*/
-		public function fetch(): Fiber{
-			return new Fiber(function(){
+		public function fetch(): \Fiber{
+			return new \Fiber(function(){
 				if ($this->method === "get"){
 					$getBody = sprintf("GET %s\r\n", $this->path);
 					$getBody .= sprintf("Host: %s\r\n", $this->host);
@@ -71,8 +74,8 @@
 					$getBody .= "\r\n";
 					$beginTime = time();
 
-					Async::await($this->socket->write($getBody));
-					$data = Async::await($this->socket->readAllData());
+					\Async::await($this->socket->write($getBody));
+					$data = \Async::await($this->socket->readAllData());
 
 					return $data;
 				}

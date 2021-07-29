@@ -1,5 +1,8 @@
 <?php
+	namespace AsyncMySQL;
+
 	require_once __DIR__ . "/exceptions/OperationsOutOfSync.php";
+	require_once __DIR__ . "/exceptions/QueryTimedOut.php";
 
 	/**
 	* Wrapper for MySQLi to run asynchronous queries.
@@ -11,7 +14,7 @@
 		public static string $defaultCollation = "utf8mb4_unicode_ci";
 		public static int $defaultQueryTimeout = 5;
 
-		public mysqli $connection;
+		public \mysqli $connection;
 
 		/** Whether or not this class is available to perform another query. */
 		public bool $isAvailable = true;
@@ -25,7 +28,7 @@
 		){
 			mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-			$connection = new mysqli($host, $user, $password, $database, $port);
+			$connection = new \mysqli($host, $user, $password, $database, $port);
 			$this->connection = $connection;
 
 			// Run this synchronously
@@ -33,9 +36,10 @@
 		}
 
 		/**
-		* Asynchronously executes a query with named arguments.
-		* Will return the result of the query.
-		*/
+		 * Asynchronously executes a query with named arguments.
+		 * Will return the result of the query.
+		 * @throws OperationsOutOfSync
+		 */
 		public function execute(string $query, array $namedArgs = []): Fiber{
 
 			if (!$this->isAvailable){
@@ -58,7 +62,7 @@
 
 				$numReadyQueries;
 				do{
-					$numReadyQueries = (int) mysqli::poll($toPoll, $errors, $rejections, self::$defaultQueryTimeout);
+					$numReadyQueries = (int) \mysqli::poll($toPoll, $errors, $rejections, self::$defaultQueryTimeout);
 					if ($numReadyQueries > 0){
 						break;
 					}
@@ -77,7 +81,7 @@
 						return $result;
 					}
 				}else{
-					throw new QueryTimedOut;
+					throw new QueryTimedOut();
 				}
 			});
 		}
