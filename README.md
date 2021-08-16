@@ -6,6 +6,12 @@ More examples to come - currently only HTTP GET and asynchronous MySQLi queries 
 
 Until PHP 8.1 is out, you must have the Fiber extension in your PHP version. I compiled the php_fiber.dll myself on Windows 10 for PHP 8.0.3 for this example and ran it from XAMPP.
 
+## Rundown of How It Works
+
+Because the internal PHP functions (such as `file_get_contents`) are blocking by default, to implement asynchronous HTTP with PHP 8.1 Fibers, you must rebuild an HTTP request wrapper with native `socket_` functions. Sockets in PHP can be set to be non-blocking. With this, a simple event loop can be created that can run all the Fibers in the event loop stack. If a socket isn't ready to be read (such as, the HTTP request is still pending) the Fiber will suspend and the next one can run.
+
+This is all done in native PHP (version 8.1+) with no libraries. A language, such as JavaScript, has an internal event loop (which PHP does not) so that is why we have to create our own event loop (in the `src/Async/Async.php` file) to manage our Fibers and run them.
+
 ## Async HTTP GET Example
 
 For the full example, checkout the http-example.php file. A small snippet is shown below.
