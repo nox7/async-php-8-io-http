@@ -6,6 +6,38 @@ More examples to come - currently only HTTP GET and asynchronous MySQLi queries 
 
 Must be running PHP 8.1 - that is when PHP Fibers were introduced.
 
+## Why do Fibers Help Make Async Code Possible?
+Asynchronous code can be simplified in layman's terms to basically read as "code that runs when there is time to run" - it doesn't mean it runs in parallel to other code. Imagine you send two HTTP requests in your code. Why should you wait for one to finish before starting the second one? This is asynchronous code - because we're waiting on the first request to finish, we can use that time to make another.
+
+This "waiting" is where Fibers can help us manage multiple code blocks. If you've ever used a language like JavaScript which has native asynchronous code support (async/await on Promises) then you've never had to worry about how it works behind the scenes.
+
+Fibers allow you to **code your own asynchronous architecture**. Asynchronous code relies on an underlying "Event Loop" (JavaScript handles this for you, for example). 
+
+Consider that your main application has a loop similar to the pseudo code below:
+
+```
+fibers = [];
+
+fibers[] = new Fiber(function(){
+	// Imagine that run_my_code() has new Fibers added to the fibers array
+	run_my_code();
+});
+
+do{
+	foreach($fibers as $fiber){
+		if ($fiber->isSuspended() && $fiber->isTerminated() === false_{
+			$fiber->resume();
+		}else{
+			// Remove it from the fibers array
+		}
+	}
+}while(!empty(fibers));
+```
+
+If the function `run_my_code()` creates new fibers, the loop will keep looping. It's slightly more technical than this - you have to check if the fibers are terminated/finished or are still pending. But the gist is that Fibers allow you to make your own asynchronous framework to write asynchronous code - they don't magically make code asynchronous on their own. Suspending a fiber is similar to "waiting" and letting the next fiber run while we wait on that suspended fiber.
+
+The main loop (the "Event Loop") will make sure the PHP process doesn't end until all Fibers have terminated and thus all the code in your application is done running.
+
 ## Rundown of How It Works
 
 Because the internal PHP functions (such as `file_get_contents`) are blocking by default, to implement asynchronous HTTP with PHP 8.1 Fibers, you must rebuild an HTTP request wrapper with native `socket_` functions. Sockets in PHP can be set to be non-blocking. With this, a simple event loop can be created that can run all the Fibers in the event loop stack. If a socket isn't ready to be read (such as, the HTTP request is still pending) the Fiber will suspend and the next one can run.
